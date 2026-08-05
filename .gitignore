@@ -68,7 +68,6 @@ install_manifest.txt
 .vscode/*.log
 imgui.ini
 
-# Keep launch/tasks/extensions if shared
 .vscode/
 .vscode/launch.json
 .vscode/tasks.json
