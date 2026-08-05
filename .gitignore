@@ -69,10 +69,10 @@ install_manifest.txt
 imgui.ini
 
 # Keep launch/tasks/extensions if shared
-!.vscode/
-!.vscode/launch.json
-!.vscode/tasks.json
-!.vscode/extensions.json
+.vscode/
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/extensions.json
 
 # ==========================
 # CLion
