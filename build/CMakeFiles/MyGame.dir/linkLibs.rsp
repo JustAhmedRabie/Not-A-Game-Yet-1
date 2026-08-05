@@ -1,1 +1,0 @@
- "external/imgui-sfml/libImGui-SFML.a" "C:/Libraries/SFML-3.1.0/lib/libsfml-graphics-d.a" "C:/Libraries/SFML-3.1.0/lib/libsfml-window-d.a" "C:/Libraries/SFML-3.1.0/lib/libsfml-system-d.a" -lopengl32 -limm32 -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 
