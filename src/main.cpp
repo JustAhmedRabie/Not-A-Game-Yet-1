@@ -7,13 +7,81 @@
 #include "imgui.h"
 #include "imgui-SFML.h"
 
+enum ShapeType
+{
+    CIRCLE,
+    RECTANGLE
+};
+
+class Shape
+{
+private:
+    /* data */
+public:
+    ShapeType type;
+    std::string name;
+    sf::Vector2f position;
+    sf::Vector2f velocity;
+    sf::Color color;
+    sf::Vector2f scale;
+
+    Shape(ShapeType type, std::string name, sf::Vector2f position, sf::Vector2f velocity, sf::Vector2f scale, sf::Color color)
+        :type(type), name(name), position(position), velocity(velocity), scale(scale), color(color)
+    {
+
+    }
+};
+
+
 int main(int argc, char* argv[])
 {
-    std::cout << "hello there";
+    std::vector<Shape> shapes = {};
+    std::string fontPath;
+    int fontSize;
+    sf::Color fontColor;
+    int wWidth;
+    int wHeight;
+
+    std::ifstream file("build/config.txt");
+
+    if (!file)
+    {
+        std::cerr << "Failed to open file\n";
+        return 1;
+    }
+
+    std::string word;
+
+    while (file >> word)
+    {
+        if (word == "Window")
+        {
+            file >> wWidth >> wHeight;
+        }
+        else if (word == "Font")
+        {
+            file >> fontPath;
+            file >> fontSize >> fontColor.r >> fontColor.g >> fontColor.b;
+        }
+        else
+        {
+            ShapeType type = word == "Circle" ? ShapeType::CIRCLE : ShapeType::RECTANGLE;
+            std::string name;
+            float px, py, vx, vy, r, g, b, sx, sy;
+
+            file >> name;
+            file >> px >> py >> vx >> vy >> r >> g >> b >> sx;
+            if (type == ShapeType::RECTANGLE) file >> sy;
+            else sy = sx;
+
+            shapes.emplace_back(type, name, sf::Vector2f(px, py), sf::Vector2f(vx, vy), sf::Vector2f(sx, sy), sf::Color(r, g, b, 255));
+        }
+
+    }
+
+
     // Create a new window of size 1280x720 pixels
     // Top-left is (0, 0), bottom-right is (width, height)
-    const int wWidth = 1280;
-    const int wHeight = 720;
     sf::RenderWindow window(sf::VideoMode({ (unsigned int)wWidth, (unsigned int)wHeight }), "SFML Works!");
     window.setFramerateLimit(60);
 
@@ -46,7 +114,7 @@ int main(int argc, char* argv[])
 
     // Load font
     sf::Font font;
-    if (!font.openFromFile("build/fonts/tech.ttf"))
+    if (!font.openFromFile(fontPath))
     {
         std::cerr << "Could not load font!\n";
         return -1;
