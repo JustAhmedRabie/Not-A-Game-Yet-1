@@ -1,11 +1,12 @@
-#include <iostream>
-#include <memory>
-#include <fstream>
-#include <optional> //? suggested to add it since we used it in the code
-#include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
-#include "imgui.h"
 #include "imgui-SFML.h"
+#include "imgui.h"
+#include <SFML/Audio.hpp>
+#include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Text.hpp>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <optional> //? suggested to add it since we used it in the code
 
 enum ShapeType
 {
@@ -25,11 +26,18 @@ public:
     sf::Color color;
     sf::Vector2f scale;
 
-    Shape(ShapeType type, std::string name, sf::Vector2f position, sf::Vector2f velocity, sf::Vector2f scale, sf::Color color)
-        : type(type), name(name), position(position), velocity(velocity), scale(scale), color(color)
+    Shape(ShapeType type, std::string name, sf::Vector2f position, sf::Vector2f velocity, sf::Vector2f scale,
+          sf::Color color)
+        : type(type),
+          name(name),
+          position(position),
+          velocity(velocity),
+          scale(scale),
+          color(color)
     {
     }
 };
+
 //* A new Unit
 struct GameConfig
 {
@@ -40,19 +48,21 @@ struct GameConfig
     int wWidth;
     int wHeight;
 };
+
 //* The SanityCheck Object for sake of testing
 struct SaneCheck
 {
     // Initial shape properties
     float circleRadius = 50.0f;
     int circleSegments = 32;
-    float circleSpeedX = 1.0f;
+    float circleSpeedX = 3.0f;
     float circleSpeedY = 1.0f;
     bool drawCircle = true;
     bool drawText = true;
 };
+
 // TODO : i think it may be cleaner in some way
-bool getConfig(GameConfig &conf)
+bool getConfig(GameConfig& conf)
 {
     std::ifstream file("build/config.txt");
 
@@ -88,13 +98,14 @@ bool getConfig(GameConfig &conf)
             else
                 sy = sx;
 
-            conf.shapes.emplace_back(type, name, sf::Vector2f(px, py), sf::Vector2f(vx, vy), sf::Vector2f(sx, sy), sf::Color(r, g, b, 255));
+            conf.shapes.emplace_back(type, name, sf::Vector2f(px, py), sf::Vector2f(vx, vy), sf::Vector2f(sx, sy),
+                                     sf::Color(r, g, b, 255));
         }
     }
     return true;
 }
 
-void GameLoop(sf::RenderWindow &window, GameConfig &conf, SaneCheck &check, sf::CircleShape &circle, sf::Font &font)
+void GameLoop(sf::RenderWindow& window, GameConfig& conf, SaneCheck& check, sf::CircleShape& circle, sf::Font& font)
 {
     sf::Clock deltaClock;
     /*
@@ -104,7 +115,7 @@ void GameLoop(sf::RenderWindow &window, GameConfig &conf, SaneCheck &check, sf::
     float c[3] = {0.0f, 1.0f, 1.0f};
     // Set up sample text
     sf::Text text(font, "Sample Text", 24);
-    text.setPosition({0.0f, (float)conf.wHeight - (float)text.getCharacterSize()});
+    text.setPosition({0.0f, (float) conf.wHeight - (float) text.getCharacterSize()});
 
     // Character buffer for ImGui text input
     char nameBuffer[255] = "Sample Text";
@@ -153,14 +164,21 @@ void GameLoop(sf::RenderWindow &window, GameConfig &conf, SaneCheck &check, sf::
         // Update circle properties based on GUI input
         circle.setRadius(check.circleRadius);
         circle.setPointCount(check.circleSegments);
-        circle.setFillColor(sf::Color(
-            (uint8_t)(c[0] * 255),
-            (uint8_t)(c[1] * 255),
-            (uint8_t)(c[2] * 255)));
+        circle.setFillColor(sf::Color((uint8_t) (c[0] * 255), (uint8_t) (c[1] * 255), (uint8_t) (c[2] * 255)));
 
+        if (circle.getGlobalBounds().position.x + circle.getRadius() * 2 >= conf.wWidth ||
+            circle.getGlobalBounds().position.x <= 0.f)
+        {
+            check.circleSpeedX *= -1;
+        }
+
+        if (circle.getGlobalBounds().position.y + circle.getRadius() * 2 >= conf.wHeight ||
+            circle.getGlobalBounds().position.y <= 0.f)
+        {
+            check.circleSpeedY *= -1;
+        }
         // Movement / Position update
-        circle.setPosition({circle.getPosition().x + check.circleSpeedX,
-                            circle.getPosition().y + check.circleSpeedY});
+        circle.setPosition({circle.getPosition().x + check.circleSpeedX, circle.getPosition().y + check.circleSpeedY});
 
         // Clear, draw, render, display
         window.clear(sf::Color::Black);
@@ -172,6 +190,11 @@ void GameLoop(sf::RenderWindow &window, GameConfig &conf, SaneCheck &check, sf::
 
         if (check.drawText)
         {
+            const auto bounds = text.getLocalBounds();
+
+            text.setOrigin({bounds.position.x + bounds.size.x / 2.f, bounds.position.y + bounds.size.y / 2.f});
+            text.setPosition(
+                {circle.getPosition().x + circle.getRadius(), circle.getPosition().y + circle.getRadius()});
             window.draw(text);
         }
 
@@ -180,7 +203,7 @@ void GameLoop(sf::RenderWindow &window, GameConfig &conf, SaneCheck &check, sf::
     }
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     // the unit that holds the Game Config
     GameConfig conf;
@@ -195,7 +218,7 @@ int main(int argc, char *argv[])
 
     // Create a new window of size 1280x720 pixels
     // Top-left is (0, 0), bottom-right is (width, height)
-    sf::RenderWindow window(sf::VideoMode({(unsigned int)conf.wWidth, (unsigned int)conf.wHeight}), "SFML Works!");
+    sf::RenderWindow window(sf::VideoMode({(unsigned int) conf.wWidth, (unsigned int) conf.wHeight}), "SFML Works!");
     window.setFramerateLimit(60);
 
     // Initialize ImGui-SFML
@@ -222,7 +245,8 @@ int main(int argc, char *argv[])
     /*
     ! a very ugly style , but kept for the sake of only refactor the code
     TODO we should make it ckeaner which it will take args from other functions
-    TODO -> also make the SanityCheck object a hardcoded unit like making it a struct then init , so we can use it anytime
+    TODO -> also make the SanityCheck object a hardcoded unit like making it a struct then init , so we can use it
+    anytime
     TODO -> i could've done that but got tired :p
 
     */
